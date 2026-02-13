@@ -57,28 +57,18 @@ function CameraController({ scrollProgress }: CameraControllerProps) {
   return null
 }
 
-function ScrollDrivenObjects() {
+interface ScrollDrivenObjectsProps {
+  currentSection: number
+}
+
+function ScrollDrivenObjects({ currentSection }: ScrollDrivenObjectsProps) {
   const S = SECTION_SPACING
-  const visRef = useRef<Record<string, number>>({})
 
   const headRef = useRef<THREE.Group | null>(null)
   const headScale = useRef(0)
 
   useFrame(({ camera }) => {
     const camY = camera.position.y
-
-    visRef.current = {
-      sec0: sectionVisibility(camY, 0),
-      sec1: sectionVisibility(camY, -1 * S),
-      sec2: sectionVisibility(camY, -2 * S),
-      sec3: sectionVisibility(camY, -3 * S),
-      sec4: sectionVisibility(camY, -4 * S),
-      sec5: sectionVisibility(camY, -5 * S),
-      sec6: sectionVisibility(camY, -6 * S),
-      sec7: sectionVisibility(camY, -7 * S),
-      sec8: sectionVisibility(camY, -8 * S),
-      sec9: sectionVisibility(camY, -9 * S),
-    }
 
     const headVis = sectionVisibility(camY, -7 * S, 30)
     headScale.current += (headVis - headScale.current) * 0.06
@@ -88,16 +78,14 @@ function ScrollDrivenObjects() {
     }
   })
 
-  const sec = (index: number) => visRef.current[`sec${index}`] ?? 0
-
-  // Overlap adjacent sections for a chained flow similar to 2015.
-  const beamActive = sec(1) > 0.08 || sec(0) > 0.28 || sec(2) > 0.24
-  const dropActive = sec(2) > 0.08 || sec(1) > 0.22 || sec(3) > 0.22
-  const ballActive = sec(3) > 0.08 || sec(2) > 0.22 || sec(4) > 0.2
-  const heightActive = sec(4) > 0.08 || sec(3) > 0.2 || sec(5) > 0.2
-  const waveActive = sec(5) > 0.08 || sec(4) > 0.18 || sec(6) > 0.18
-  const galaxyActive = sec(6) > 0.08 || sec(5) > 0.16 || sec(7) > 0.16
-  const neonActive = sec(8) > 0.08 || sec(7) > 0.18 || sec(9) > 0.18
+  // Event-style activation windows, aligned with 2015 cross-section persistence.
+  const beamActive = currentSection >= 0 && currentSection <= 2
+  const dropActive = currentSection >= 1 && currentSection <= 3
+  const ballActive = currentSection >= 2 && currentSection <= 4
+  const heightActive = currentSection >= 3 && currentSection <= 5
+  const waveActive = currentSection >= 4 && currentSection <= 6
+  const galaxyActive = currentSection >= 5 && currentSection <= 7
+  const neonActive = currentSection >= 7 && currentSection <= 9
 
   return (
     <>
@@ -156,9 +144,10 @@ function ScrollDrivenObjects() {
 
 interface Scene3DProps {
   scrollProgress: number
+  currentSection: number
 }
 
-export default function Scene3D({ scrollProgress }: Scene3DProps) {
+export default function Scene3D({ scrollProgress, currentSection }: Scene3DProps) {
   return (
     <div className="canvas-container">
       <Canvas
@@ -184,7 +173,7 @@ export default function Scene3D({ scrollProgress }: Scene3DProps) {
         <FogClouds yOffset={0} layers={6} opacity={0.14} />
         <FogClouds yOffset={-95} layers={4} opacity={0.08} />
 
-        <ScrollDrivenObjects />
+        <ScrollDrivenObjects currentSection={currentSection} />
       </Canvas>
     </div>
   )

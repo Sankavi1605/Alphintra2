@@ -254,10 +254,12 @@ sections.forEach((s, i) => {
 
 interface ScrollSectionsProps {
   onScrollProgress: (progress: number) => void
+  onSectionChange?: (sectionIndex: number) => void
 }
 
 export default function ScrollSections({
   onScrollProgress,
+  onSectionChange,
 }: ScrollSectionsProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [currentStep, setCurrentStep] = useState(0)
@@ -744,6 +746,10 @@ export default function ScrollSections({
 
   // ── Derived state ──
   const currentSectionIndex = steps[currentStep]?.sectionIndex ?? 0
+
+  useEffect(() => {
+    onSectionChange?.(currentSectionIndex)
+  }, [currentSectionIndex, onSectionChange])
 
   // Portfolio callbacks
   const onPortfolioDone = useCallback(() => {

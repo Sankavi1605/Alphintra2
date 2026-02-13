@@ -2,7 +2,7 @@
  * Loader — ported from the 2015 site's "LOADING" preloader.
  * 
  * Features:
- * - Glitchy "ALPHINTRA" text animation during load
+ * - Glitchy "LOADING" text animation during load
  * - Animated progress bar with glow
  * - Particle burst on completion
  * - Smooth fade-out reveal
@@ -153,7 +153,7 @@ export default function Loader({ onComplete, minDuration = 2800 }: LoaderProps) 
     }
   }, [progress, onComplete, triggerBurst])
 
-  const letters = 'ALPHINTRA'.split('')
+  const letters = 'LOADING'.split('')
 
   return (
     <div ref={containerRef} className="loader">

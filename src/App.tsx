@@ -12,6 +12,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 export default function App() {
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [currentSection, setCurrentSection] = useState(0)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -35,9 +36,12 @@ export default function App() {
   return (
     <>
       <Suspense fallback={null}>
-        <Scene3D scrollProgress={scrollProgress} />
+        <Scene3D scrollProgress={scrollProgress} currentSection={currentSection} />
       </Suspense>
-      <ScrollSections onScrollProgress={setScrollProgress} />
+      <ScrollSections
+        onScrollProgress={setScrollProgress}
+        onSectionChange={setCurrentSection}
+      />
       <Footer />
     </>
   )
