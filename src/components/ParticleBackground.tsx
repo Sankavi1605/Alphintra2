@@ -267,17 +267,17 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
 
         let c0: string, c1: string, c2: string
         if (fog.layer === 0) {
-          c0 = `rgba(50, 60, 80, ${currentOpacity})`
-          c1 = `rgba(35, 45, 65, ${currentOpacity * 0.5})`
-          c2 = 'rgba(20, 25, 35, 0)'
+          c0 = `rgba(45, 48, 56, ${currentOpacity})`
+          c1 = `rgba(34, 36, 42, ${currentOpacity * 0.5})`
+          c2 = 'rgba(20, 21, 24, 0)'
         } else if (fog.layer === 1) {
-          c0 = `rgba(120, 140, 170, ${currentOpacity})`
-          c1 = `rgba(80, 100, 130, ${currentOpacity * 0.4})`
-          c2 = 'rgba(50, 65, 85, 0)'
+          c0 = `rgba(115, 120, 130, ${currentOpacity})`
+          c1 = `rgba(82, 88, 98, ${currentOpacity * 0.4})`
+          c2 = 'rgba(52, 56, 62, 0)'
         } else {
-          c0 = `rgba(170, 185, 210, ${currentOpacity})`
-          c1 = `rgba(140, 160, 185, ${currentOpacity * 0.35})`
-          c2 = 'rgba(110, 130, 155, 0)'
+          c0 = `rgba(176, 180, 192, ${currentOpacity})`
+          c1 = `rgba(142, 147, 160, ${currentOpacity * 0.35})`
+          c2 = 'rgba(112, 116, 125, 0)'
         }
 
         const r = fog.radius * breathe
@@ -369,9 +369,9 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
           const glow = ctx.createRadialGradient(
             p.x, p.y, 0, p.x, p.y, p.size * 4
           )
-          glow.addColorStop(0, `rgba(200, 220, 255, ${alpha * 0.4})`)
-          glow.addColorStop(0.4, `rgba(200, 220, 255, ${alpha * 0.1})`)
-          glow.addColorStop(1, 'rgba(200, 220, 255, 0)')
+          glow.addColorStop(0, `rgba(235, 240, 250, ${alpha * 0.4})`)
+          glow.addColorStop(0.4, `rgba(220, 225, 235, ${alpha * 0.1})`)
+          glow.addColorStop(1, 'rgba(220, 225, 235, 0)')
           ctx.fillStyle = glow
           ctx.fillRect(p.x - p.size * 4, p.y - p.size * 4,
             p.size * 8, p.size * 8)
@@ -389,7 +389,7 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
 
         const lineGrad = ctx.createLinearGradient(0, tailY, 0, line.headY)
         lineGrad.addColorStop(0, 'rgba(255, 255, 255, 0)')
-        lineGrad.addColorStop(0.6, `rgba(200, 220, 255, ${line.opacity * 0.4})`)
+        lineGrad.addColorStop(0.6, `rgba(220, 225, 235, ${line.opacity * 0.4})`)
         lineGrad.addColorStop(1, `rgba(255, 255, 255, ${line.opacity})`)
 
         ctx.beginPath()
@@ -413,8 +413,8 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
             line.x, line.headY, ns * 8
           )
           haloGrad.addColorStop(0, `rgba(255, 255, 255, ${line.glow * 0.6})`)
-          haloGrad.addColorStop(0.2, `rgba(200, 220, 255, ${line.glow * 0.2})`)
-          haloGrad.addColorStop(1, 'rgba(200, 220, 255, 0)')
+          haloGrad.addColorStop(0.2, `rgba(215, 220, 230, ${line.glow * 0.2})`)
+          haloGrad.addColorStop(1, 'rgba(215, 220, 230, 0)')
           ctx.fillStyle = haloGrad
           ctx.fillRect(line.x - ns * 8, line.headY - ns * 8, ns * 16, ns * 16)
           ctx.restore()
@@ -442,7 +442,7 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
 
           ctx.beginPath()
           ctx.arc(r.x, r.y, ringRadius, 0, Math.PI * 2)
-          ctx.strokeStyle = `rgba(200, 220, 240, ${r.opacity * (1 - ring * 0.3)})`
+          ctx.strokeStyle = `rgba(220, 224, 232, ${r.opacity * (1 - ring * 0.3)})`
           ctx.lineWidth = r.lineWidth * (1 - ring * 0.2)
           ctx.stroke()
         }

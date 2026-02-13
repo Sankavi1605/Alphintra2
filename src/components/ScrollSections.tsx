@@ -534,11 +534,13 @@ export default function ScrollSections({
       if (isAnimating.current) return
 
       const previousStep = currentStepRef.current
+      const previous = steps[previousStep]
       currentStepRef.current = clamped
       setCurrentStep(clamped)
       isAnimating.current = true
 
       const step = steps[clamped]
+      const sameSection = previous?.sectionIndex === step.sectionIndex
 
       // Update detail / portfolio visibility state
       if (step.subStep === 'detail') {
@@ -559,12 +561,25 @@ export default function ScrollSections({
       // ── Fire section animations ──
       animateSectionChange(previousStep, clamped)
 
-      // ── Camera tween → scroll to section ──
+      if (sameSection) {
+        gsap.delayedCall(0.65, () => {
+          isAnimating.current = false
+          syncProgress()
+        })
+        return
+      }
+
       const sectionEls = containerRef.current?.querySelectorAll('.scroll-section')
-      if (!sectionEls) return
+      if (!sectionEls) {
+        isAnimating.current = false
+        return
+      }
 
       const targetEl = sectionEls[step.sectionIndex] as HTMLElement
-      if (!targetEl) return
+      if (!targetEl) {
+        isAnimating.current = false
+        return
+      }
 
       gsap.to(window, {
         scrollTo: { y: targetEl.offsetTop, autoKill: false },
@@ -844,3 +859,4 @@ export default function ScrollSections({
     </>
   )
 }
+

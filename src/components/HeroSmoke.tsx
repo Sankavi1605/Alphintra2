@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react'
 
 /**
  * Hero section volumetric smoke/cloud effect
- * Ported from 2015 SmokeObject3D — layered animated smoke clouds
- * with purple/red color scheme (frontColor: #9b69b2, backColor: #e1455f)
+ * Ported from 2015 SmokeObject3D using monochrome tones.
  *
  * Uses Canvas 2D with animated radial gradients that drift, breathe,
  * and rotate — creating a dynamic, organic smoke feel.
@@ -56,11 +55,7 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
             const rand = seededRandom(77)
             const cl: SmokeCloud[] = []
 
-            // 2015 original colors
-            // frontColor: #9b69b2 (purple) → rgba(155, 105, 178, ...)
-            // backColor: #e1455f (red-pink) → rgba(225, 69, 95, ...)
-
-            // Back layer — large, dark-tinted red-pink clouds
+            // Back layer: large dark gray clouds
             for (let i = 0; i < 6; i++) {
                 const cx = w * 0.1 + rand() * w * 0.8
                 const cy = h * 0.2 + rand() * h * 0.6
@@ -76,12 +71,12 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
                     vy: (rand() - 0.5) * 0.15,
                     phase: rand() * Math.PI * 2,
                     phaseSpeed: 0.003 + rand() * 0.005,
-                    color: `${180 + Math.floor(rand() * 45)}, ${50 + Math.floor(rand() * 30)}, ${70 + Math.floor(rand() * 30)}`,
+                    color: `${52 + Math.floor(rand() * 30)}, ${58 + Math.floor(rand() * 32)}, ${66 + Math.floor(rand() * 35)}`,
                     stretch: 1.2 + rand() * 0.6,
                 })
             }
 
-            // Mid layer — purple-blue tones
+            // Mid layer: medium neutral smoke
             for (let i = 0; i < 5; i++) {
                 const cx = w * 0.15 + rand() * w * 0.7
                 const cy = h * 0.25 + rand() * h * 0.5
@@ -97,12 +92,12 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
                     vy: (rand() - 0.5) * 0.12,
                     phase: rand() * Math.PI * 2,
                     phaseSpeed: 0.004 + rand() * 0.006,
-                    color: `${130 + Math.floor(rand() * 40)}, ${80 + Math.floor(rand() * 40)}, ${155 + Math.floor(rand() * 40)}`,
+                    color: `${90 + Math.floor(rand() * 28)}, ${99 + Math.floor(rand() * 28)}, ${112 + Math.floor(rand() * 28)}`,
                     stretch: 1.1 + rand() * 0.5,
                 })
             }
 
-            // Front layer — bright purple wisps, smaller
+            // Front layer: light gray wisps
             for (let i = 0; i < 5; i++) {
                 const cx = w * 0.2 + rand() * w * 0.6
                 const cy = h * 0.3 + rand() * h * 0.4
@@ -118,12 +113,12 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
                     vy: (rand() - 0.5) * 0.2,
                     phase: rand() * Math.PI * 2,
                     phaseSpeed: 0.005 + rand() * 0.008,
-                    color: `${155 + Math.floor(rand() * 30)}, ${105 + Math.floor(rand() * 30)}, ${178 + Math.floor(rand() * 30)}`,
+                    color: `${128 + Math.floor(rand() * 24)}, ${136 + Math.floor(rand() * 24)}, ${148 + Math.floor(rand() * 24)}`,
                     stretch: 1.0 + rand() * 0.4,
                 })
             }
 
-            // Bright accent wisps (white/ice-blue highlights)
+            // Accent wisps: near-white highlights
             for (let i = 0; i < 3; i++) {
                 const cx = w * 0.25 + rand() * w * 0.5
                 const cy = h * 0.35 + rand() * h * 0.3
@@ -139,7 +134,7 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
                     vy: (rand() - 0.5) * 0.25,
                     phase: rand() * Math.PI * 2,
                     phaseSpeed: 0.006 + rand() * 0.01,
-                    color: `${200 + Math.floor(rand() * 40)}, ${210 + Math.floor(rand() * 30)}, ${240 + Math.floor(rand() * 15)}`,
+                    color: `${188 + Math.floor(rand() * 24)}, ${195 + Math.floor(rand() * 20)}, ${206 + Math.floor(rand() * 18)}`,
                     stretch: 0.8 + rand() * 0.6,
                 })
             }
