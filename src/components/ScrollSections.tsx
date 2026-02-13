@@ -59,7 +59,7 @@ interface SectionData {
 const sections: SectionData[] = [
   {
     id: 'hello',
-    line1: 'ALPHINTRA',
+    line1: '',
     line2: '',
     subtitle: '',
     detail: '',
@@ -614,9 +614,9 @@ export default function ScrollSections({
       })
     }
 
-    // Play hero entrance after delay
-    const timer = gsap.delayedCall(0.6, () => {
-      animateTextIn(0, true)
+    // Start directly on first real hero section (skip ALPHINTRA splash section)
+    const timer = gsap.delayedCall(0.45, () => {
+      goToStep(1)
     })
     return () => {
       timer.kill()
@@ -625,7 +625,7 @@ export default function ScrollSections({
       heroShimmer.current?.kill()
       heroFloat.current?.kill()
     }
-  }, [animateTextIn])
+  }, [goToStep])
 
 
   // ══ SCROLL HIJACKING (2015's navigation()) ══════════════
