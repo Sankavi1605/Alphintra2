@@ -614,11 +614,28 @@ export default function ScrollSections({
       })
     }
 
-    // Start directly on first real hero section (skip ALPHINTRA splash section)
-    const timer = gsap.delayedCall(0.45, () => {
-      goToStep(1)
-    })
+    // Start directly on first real hero section.
+    // Retry briefly in case DOM is not ready on slower loads.
+    let cancelled = false
+    let attempts = 0
+    const maxAttempts = 30
+
+    const kickToHero = () => {
+      if (cancelled) return
+      const sectionEls = containerRef.current?.querySelectorAll('.scroll-section')
+      if (sectionEls && sectionEls.length > 1) {
+        goToStep(1)
+        return
+      }
+      attempts++
+      if (attempts < maxAttempts) {
+        setTimeout(kickToHero, 80)
+      }
+    }
+
+    const timer = gsap.delayedCall(0.35, kickToHero)
     return () => {
+      cancelled = true
       timer.kill()
       runningTweens.current.forEach(t => t.kill())
       heroGlitchLoop.current?.kill()

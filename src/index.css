@@ -126,7 +126,8 @@ body {
   height: 100%;
   z-index: 1;
   pointer-events: none;
-  mix-blend-mode: screen;
+  mix-blend-mode: normal;
+  opacity: 0.68;
 }
 
 /* === 3D SCENE CANVAS === */

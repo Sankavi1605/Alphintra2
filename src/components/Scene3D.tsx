@@ -170,8 +170,8 @@ export default function Scene3D({ scrollProgress, currentSection }: Scene3DProps
         <StarField count={500} />
         <VerticalBeams />
 
-        <FogClouds yOffset={0} layers={6} opacity={0.14} />
-        <FogClouds yOffset={-95} layers={4} opacity={0.08} />
+        <FogClouds yOffset={0} layers={6} opacity={0.06} />
+        <FogClouds yOffset={-95} layers={4} opacity={0.03} />
 
         <ScrollDrivenObjects currentSection={currentSection} />
       </Canvas>

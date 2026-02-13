@@ -64,7 +64,7 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
                     radius: 150 + rand() * 350,
                     baseRadius: 150 + rand() * 350,
                     opacity: 0,
-                    baseOpacity: 0.06 + rand() * 0.08,
+                    baseOpacity: 0.026 + rand() * 0.024,
                     rotation: rand() * Math.PI * 2,
                     rotSpeed: (rand() - 0.5) * 0.002,
                     vx: (rand() - 0.5) * 0.4,
@@ -85,7 +85,7 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
                     radius: 120 + rand() * 280,
                     baseRadius: 120 + rand() * 280,
                     opacity: 0,
-                    baseOpacity: 0.07 + rand() * 0.1,
+                    baseOpacity: 0.02 + rand() * 0.02,
                     rotation: rand() * Math.PI * 2,
                     rotSpeed: (rand() - 0.5) * 0.003,
                     vx: (rand() - 0.5) * 0.3,
@@ -106,7 +106,7 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
                     radius: 80 + rand() * 200,
                     baseRadius: 80 + rand() * 200,
                     opacity: 0,
-                    baseOpacity: 0.05 + rand() * 0.08,
+                    baseOpacity: 0.016 + rand() * 0.02,
                     rotation: rand() * Math.PI * 2,
                     rotSpeed: (rand() - 0.5) * 0.004,
                     vx: (rand() - 0.5) * 0.5,
@@ -127,7 +127,7 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
                     radius: 60 + rand() * 120,
                     baseRadius: 60 + rand() * 120,
                     opacity: 0,
-                    baseOpacity: 0.03 + rand() * 0.05,
+                    baseOpacity: 0.008 + rand() * 0.012,
                     rotation: rand() * Math.PI * 2,
                     rotSpeed: (rand() - 0.5) * 0.005,
                     vx: (rand() - 0.5) * 0.6,
@@ -168,7 +168,7 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
 
             ctx.clearRect(0, 0, w, h)
 
-            const globalFade = fadeIn.current
+            const globalFade = fadeIn.current * 0.62
 
             clouds.current.forEach((cloud) => {
                 cloud.x += cloud.vx
