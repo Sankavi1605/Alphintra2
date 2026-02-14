@@ -28,9 +28,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import PortfolioHorizontal from './PortfolioHorizontal'
-import SectionLines from './SectionLines'
 import ParticleBackground from './ParticleBackground'
-import WireframeLines from './WireframeLines'
 import NeonText from './NeonText'
 import HeroSmoke from './HeroSmoke'
 
@@ -59,7 +57,7 @@ interface SectionData {
 const sections: SectionData[] = [
   {
     id: 'hello',
-    line1: '',
+    line1: 'ALPHINTRA',
     line2: '',
     subtitle: '',
     detail: '',
@@ -511,12 +509,26 @@ export default function ScrollSections({
     const from = steps[fromStep]
     const to = steps[toStep]
     const way = toStep > fromStep ? 'down' : 'up'
+    if (!from || !to) return
+
+    // Same section transition: title <-> detail/portfolio.
+    if (from.sectionIndex === to.sectionIndex) {
+      if (from.subStep === 'title' && to.subStep !== 'title') {
+        if (activeTextSections.current.has(from.sectionIndex)) {
+          animateTextOut(from.sectionIndex, way)
+        }
+      } else if (from.subStep !== 'title' && to.subStep === 'title') {
+        if (!activeTextSections.current.has(to.sectionIndex)) {
+          const isHero = to.sectionIndex === 0
+          animateTextIn(to.sectionIndex, isHero)
+        }
+      }
+      return
+    }
 
     // ── "out" the departing section's text ──
-    if (from && to && from.sectionIndex !== to.sectionIndex) {
-      if (activeTextSections.current.has(from.sectionIndex)) {
-        animateTextOut(from.sectionIndex, way)
-      }
+    if (activeTextSections.current.has(from.sectionIndex)) {
+      animateTextOut(from.sectionIndex, way)
     }
 
     // ── "in" the arriving section's text ──
@@ -543,21 +555,14 @@ export default function ScrollSections({
 
       const step = steps[clamped]
       const sameSection = previous?.sectionIndex === step.sectionIndex
+      const applyStepVisibility = () => {
+        setVisibleDetails(step.subStep === 'detail' ? new Set([step.sectionIndex]) : new Set())
+        setPortfolioVisible(step.subStep === 'portfolio')
+      }
 
       // Update detail / portfolio visibility state
-      if (step.subStep === 'detail') {
-        setVisibleDetails((prev) => new Set(prev).add(step.sectionIndex))
-      } else if (step.subStep === 'title') {
-        setVisibleDetails((prev) => {
-          const next = new Set(prev)
-          next.delete(step.sectionIndex)
-          return next
-        })
-        if (sections[step.sectionIndex].isPortfolio) {
-          setPortfolioVisible(false)
-        }
-      } else if (step.subStep === 'portfolio') {
-        setPortfolioVisible(true)
+      if (sameSection) {
+        applyStepVisibility()
       }
 
       // ── Fire section animations ──
@@ -589,6 +594,7 @@ export default function ScrollSections({
         ease: 'quart.inOut',
         onUpdate: syncProgress,
         onComplete: () => {
+          applyStepVisibility()
           isAnimating.current = false
           syncProgress()
         },
@@ -614,35 +620,18 @@ export default function ScrollSections({
       })
     }
 
-    // Start directly on first real hero section.
-    // Retry briefly in case DOM is not ready on slower loads.
-    let cancelled = false
-    let attempts = 0
-    const maxAttempts = 30
-
-    const kickToHero = () => {
-      if (cancelled) return
-      const sectionEls = containerRef.current?.querySelectorAll('.scroll-section')
-      if (sectionEls && sectionEls.length > 1) {
-        goToStep(1)
-        return
-      }
-      attempts++
-      if (attempts < maxAttempts) {
-        setTimeout(kickToHero, 80)
-      }
-    }
-
-    const timer = gsap.delayedCall(0.35, kickToHero)
+    // Play main ALPHINTRA entrance first.
+    const timer = gsap.delayedCall(0.6, () => {
+      animateTextIn(0, true)
+    })
     return () => {
-      cancelled = true
       timer.kill()
       runningTweens.current.forEach(t => t.kill())
       heroGlitchLoop.current?.kill()
       heroShimmer.current?.kill()
       heroFloat.current?.kill()
     }
-  }, [goToStep])
+  }, [animateTextIn])
 
 
   // ══ SCROLL HIJACKING (2015's navigation()) ══════════════
@@ -819,7 +808,6 @@ export default function ScrollSections({
       </nav>
 
       {/* ── Connecting lines between sections ── */}
-      <SectionLines sectionCount={sections.length} currentSection={currentSectionIndex} />
 
       {/* ── Sections ── */}
       <div ref={containerRef} className="scroll-overlay">
@@ -828,17 +816,11 @@ export default function ScrollSections({
           const portfolioActive = s.isPortfolio && portfolioVisible
           const hideTitle = detailActive || portfolioActive
           const isActive = currentSectionIndex === i
-          const showLines = s.align !== 'center'
-          const linesSide = s.align === 'left' ? 'right' : 'left'
 
           return (
             <div key={s.id} className={`scroll-section scroll-section--${s.align}`} data-section-id={s.id}>
               {/* Hero smoke clouds (2015 SmokeObject3D) */}
-              {i === 0 && <HeroSmoke active={isActive} />}
-              {/* Wireframe line decoration on opposite side */}
-              {showLines && (
-                <WireframeLines side={linesSide} active={isActive && !hideTitle} />
-              )}
+              {i === 0 && <HeroSmoke active={currentSectionIndex === 0} />}
 
               {/* Title text */}
               <div className={`section-text section-text--${s.align}${hideTitle ? ' section-text--hidden' : ''}`}>
@@ -882,4 +864,3 @@ export default function ScrollSections({
     </>
   )
 }
-

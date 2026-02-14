@@ -2,16 +2,11 @@ import { useRef, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import StarField from './scene/StarField'
-import VerticalBeams from './scene/VerticalBeams'
 import BackgroundParticles from './scene/BackgroundParticles'
-import BackgroundLines from './scene/BackgroundLines'
 import LowPolyHead from './scene/LowPolyHead'
 import GlitchSphere from './scene/GlitchSphere'
 import WaveGrid from './scene/WaveGrid'
-import RippleDrop from './scene/RippleDrop'
-import BeamColumns from './scene/BeamColumns'
 import HeightMapTerrain from './scene/HeightMapTerrain'
-import NeonTubes from './scene/NeonTubes'
 import AnimatedGrid from './scene/AnimatedGrid'
 import GalaxyRings from './scene/GalaxyRings'
 import FogClouds from './scene/FogClouds'
@@ -37,21 +32,62 @@ function CameraController({ scrollProgress }: CameraControllerProps) {
   const { camera } = useThree()
   const currentY = useRef(0)
   const targetYRef = useRef(0)
+  const mouseTarget = useRef({ x: 0, y: 0 })
+  const mouseCurrent = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     targetYRef.current = -scrollProgress * TOTAL_DEPTH
   }, [scrollProgress])
 
-  useFrame((_state, delta) => {
+  useEffect(() => {
+    const onMouseMove = (event: MouseEvent) => {
+      const nx = (event.clientX / window.innerWidth) * 2 - 1
+      const ny = (event.clientY / window.innerHeight) * 2 - 1
+      mouseTarget.current.x = nx
+      mouseTarget.current.y = ny
+    }
+
+    const onMouseLeave = () => {
+      mouseTarget.current.x = 0
+      mouseTarget.current.y = 0
+    }
+
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseleave', onMouseLeave)
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseleave', onMouseLeave)
+    }
+  }, [])
+
+  useFrame((state, delta) => {
     // Slower easing keeps neighboring sections visually connected.
     const lerpFactor = 1 - Math.exp(-2.45 * delta)
     currentY.current += (targetYRef.current - currentY.current) * lerpFactor
 
-    const swayX = Math.sin(currentY.current * 0.004) * 0.5
-    const shake = Math.cos(performance.now() * 0.002) * 0.02
+    const mouseLerp = 1 - Math.exp(-7.2 * delta)
+    mouseCurrent.current.x += (mouseTarget.current.x - mouseCurrent.current.x) * mouseLerp
+    mouseCurrent.current.y += (mouseTarget.current.y - mouseCurrent.current.y) * mouseLerp
 
-    camera.position.set(swayX, currentY.current + shake, 40)
-    camera.lookAt(0, currentY.current, 0)
+    const swayX = Math.sin(currentY.current * 0.003) * 0.28
+    const pointerX = mouseCurrent.current.x * 0.88
+    const pointerY = -mouseCurrent.current.y * 0.42
+    const pointerEnergy = Math.min(
+      1,
+      Math.hypot(mouseCurrent.current.x, mouseCurrent.current.y)
+    )
+    const time = state.clock.getElapsedTime()
+    const shakeAmp = 0.025 + pointerEnergy * 0.055
+    const shakeX = Math.sin(time * 6.2 + mouseCurrent.current.x * 3.9) * shakeAmp
+    const shakeY = Math.cos(time * 5.6 + mouseCurrent.current.y * 3.3) * shakeAmp * 0.72
+
+    camera.position.set(
+      swayX + pointerX + shakeX,
+      currentY.current + pointerY + shakeY,
+      40
+    )
+    camera.lookAt(pointerX * 0.32, currentY.current + pointerY * 0.45, 0)
   })
 
   return null
@@ -78,27 +114,25 @@ function ScrollDrivenObjects({ currentSection }: ScrollDrivenObjectsProps) {
     }
   })
 
-  // Event-style activation windows, aligned with 2015 cross-section persistence.
-  const beamActive = currentSection >= 0 && currentSection <= 2
-  const dropActive = currentSection >= 1 && currentSection <= 3
-  const ballActive = currentSection >= 2 && currentSection <= 4
-  const heightActive = currentSection >= 3 && currentSection <= 5
-  const waveActive = currentSection >= 4 && currentSection <= 6
-  const galaxyActive = currentSection >= 5 && currentSection <= 7
-  const neonActive = currentSection >= 7 && currentSection <= 9
+  // Activation windows keep neighboring sections visually connected.
+  const ballActive = currentSection >= 3 && currentSection <= 4
+  // Delay terrain one section so Enterprise card stays clean.
+  const heightActive = currentSection === 5
+  const waveActive = currentSection >= 5 && currentSection <= 6
+  // Keep galaxy away from "Our Work" (section 6) to avoid section overlap bleed.
+  const galaxyActive = currentSection === 7
 
   return (
     <>
-      <BeamColumns position={[0, -1 * S, 0]} active={beamActive} />
-
-      <RippleDrop
-        position={[0, -2 * S, 0]}
-        active={dropActive}
-        count={6}
-        amplitude={2}
+      <GlitchSphere
+        position={[0, -3 * S + 3, -8]}
+        radius={3.6}
+        active={ballActive}
+        entryStartY={-2 * S - 8}
+        entryStartZ={0}
+        entryStartScale={0.48}
+        entryDuration={1.2}
       />
-
-      <GlitchSphere position={[0, -3 * S, 0]} radius={4.5} active={ballActive} />
       <AnimatedGrid
         position={[0, -3 * S - 2, 0]}
         active={ballActive}
@@ -125,19 +159,12 @@ function ScrollDrivenObjects({ currentSection }: ScrollDrivenObjectsProps) {
         opacity={0.3}
       />
 
-      <GalaxyRings position={[0, -6 * S, 0]} active={galaxyActive} ringCount={6} />
+      <GalaxyRings position={[0, -7 * S, 0]} active={galaxyActive} ringCount={6} />
 
       <group ref={headRef}>
         <LowPolyHead position={[0, -7 * S, 0]} size={4} />
       </group>
 
-      <NeonTubes
-        position={[0, -8 * S, 0]}
-        active={neonActive}
-        count={5}
-        spread={16}
-        tubeWidth={20}
-      />
     </>
   )
 }
@@ -166,9 +193,7 @@ export default function Scene3D({ scrollProgress, currentSection }: Scene3DProps
         <CameraController scrollProgress={scrollProgress} />
 
         <BackgroundParticles count={600} />
-        <BackgroundLines count={120} />
         <StarField count={500} />
-        <VerticalBeams />
 
         <FogClouds yOffset={0} layers={6} opacity={0.06} />
         <FogClouds yOffset={-95} layers={4} opacity={0.03} />

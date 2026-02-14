@@ -140,6 +140,12 @@ export default function GalaxyRings({
     }
   }, [active, ringDivisions])
 
+  useEffect(() => {
+    if (groupRef.current) {
+      groupRef.current.visible = active
+    }
+  }, [active])
+
   useFrame((_, delta) => {
     if (!active) return
 

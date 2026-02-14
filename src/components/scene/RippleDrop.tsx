@@ -21,6 +21,7 @@ import gsap from 'gsap'
 interface RippleDropProps {
   active?: boolean
   position?: [number, number, number]
+  rotation?: [number, number, number]
   count?: number
   color?: string
   amplitude?: number
@@ -29,6 +30,7 @@ interface RippleDropProps {
 export default function RippleDrop({
   active = false,
   position = [0, 0, 0],
+  rotation = [0, 0, 0],
   count = 6,
   color = '#ffffff',
   amplitude = 2,
@@ -44,7 +46,7 @@ export default function RippleDrop({
     () =>
       Array.from({ length: count }, (_, i) => ({
         scale: 0.1,
-        opacity: 0,
+        opacity: 1,
         maxScale: ((i + 1) * amplitude) / count,
         zOffset: (count - i) * 5, // 2015: (count-i)*5
         zPos: (count - i) * 5,
@@ -78,7 +80,11 @@ export default function RippleDrop({
   // In / Out transitions
   useEffect(() => {
     if (active) {
-      tweensRef.current.forEach(t => t.resume())
+      ringStates.forEach((rs) => {
+        rs.scale = 0.1
+        rs.opacity = 1
+      })
+      tweensRef.current.forEach(t => t.restart())
       ringStates.forEach((rs, i) => {
         const duration = (10 + i) / 10
         gsap.to(rs, { zPos: 0, duration, ease: 'power2.out' })
@@ -109,7 +115,7 @@ export default function RippleDrop({
   })
 
   return (
-    <group ref={groupRef} position={position}>
+    <group ref={groupRef} position={position} rotation={rotation}>
       {ringStates.map((_, i) => (
         <mesh key={i}>
           <planeGeometry args={[20, 20]} />
