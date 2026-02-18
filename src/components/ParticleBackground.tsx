@@ -4,19 +4,20 @@ interface ParticleBackgroundProps {
   currentSection: number
 }
 
-type ParticleShape = 'dot' | 'square'
-
 interface Particle {
   x: number
   y: number
   size: number
+  depth: number
   opacity: number
   baseOpacity: number
   vx: number
   vy: number
   pulse: number
   pulseSpeed: number
-  shape: ParticleShape
+  shape: 'line' | 'square'
+  lineLength: number
+  hangLength: number
 }
 
 interface FogCloud {
@@ -74,6 +75,8 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef<number>(0)
   const currentSectionRef = useRef(currentSection)
+  const previousSectionRef = useRef(currentSection)
+  const sectionTransitionRef = useRef({ progress: 0, direction: 1, rising: false })
 
   const particles = useRef<Particle[]>([])
   const fogClouds = useRef<FogCloud[]>([])
@@ -89,34 +92,38 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
     const introRand = seededRandom(777)
 
     const pts: Particle[] = []
-    const count = Math.max(120, Math.floor((w * h) / 7000))
+    const count = Math.max(84, Math.floor((w * h) / 10500))
 
     for (let i = 0; i < count; i++) {
-      const size = 0.9 + rand() * 3.1
+      const depth = rand()
+      const size = 1.2 + rand() * 3.2 + depth * 1.4
       pts.push({
         x: rand() * w,
         y: rand() * h,
         size,
+        depth,
         opacity: 0,
-        baseOpacity: 0.12 + rand() * 0.56,
-        vx: (rand() - 0.5) * 0.25,
-        vy: (rand() - 0.5) * 0.18,
+        baseOpacity: 0.045 + depth * 0.22 + rand() * 0.085,
+        vx: (rand() - 0.5) * (0.12 + depth * 0.16),
+        vy: (rand() - 0.5) * (0.09 + depth * 0.1),
         pulse: rand() * Math.PI * 2,
         pulseSpeed: 0.008 + rand() * 0.018,
-        shape: rand() > 0.62 ? 'square' : 'dot',
+        shape: rand() > 0.42 ? 'square' : 'line',
+        lineLength: 14 + rand() * 55 + depth * 48,
+        hangLength: 26 + rand() * 135 + depth * 105,
       })
     }
     particles.current = pts
 
     const fc: FogCloud[] = []
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       fc.push({
         x: rand() * w,
-        y: h * 0.12 + rand() * h * 0.76,
-        radius: 180 + rand() * 320,
-        opacity: 0.018 + rand() * 0.03,
-        vx: (rand() - 0.5) * 0.28,
-        vy: (rand() - 0.5) * 0.08,
+        y: h * 0.08 + rand() * h * 0.84,
+        radius: 220 + rand() * 400,
+        opacity: 0.03 + rand() * 0.05,
+        vx: (rand() - 0.5) * 0.32,
+        vy: (rand() - 0.5) * 0.1,
         phase: rand() * Math.PI * 2,
       })
     }
@@ -157,6 +164,13 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
 
   useEffect(() => {
     currentSectionRef.current = currentSection
+    if (currentSection !== previousSectionRef.current) {
+      sectionTransitionRef.current.progress = 0
+      sectionTransitionRef.current.rising = true
+      sectionTransitionRef.current.direction =
+        currentSection > previousSectionRef.current ? 1 : -1
+      previousSectionRef.current = currentSection
+    }
   }, [currentSection])
 
   useEffect(() => {
@@ -193,6 +207,19 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
 
       ctx.clearRect(0, 0, w, h)
 
+      const sectionTransition = sectionTransitionRef.current
+      if (sectionTransition.rising) {
+        sectionTransition.progress = Math.min(1, sectionTransition.progress + 0.045)
+        if (sectionTransition.progress >= 1) {
+          sectionTransition.rising = false
+        }
+      } else if (sectionTransition.progress > 0.001) {
+        sectionTransition.progress *= 0.965
+        if (sectionTransition.progress < 0.008) {
+          sectionTransition.progress = 0
+        }
+      }
+
       fogClouds.current.forEach((fog) => {
         fog.x += fog.vx
         fog.y += fog.vy
@@ -225,7 +252,7 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
       const introFadeOut = smoothstep01((stage - 3.02) / 0.34)
       const introAlpha = introFadeIn * (1 - introFadeOut)
       const lineAlphaStrength =
-        smoothstep01((stage - 0.42) / 0.44) * (1 - smoothstep01((stage - 2.96) / 0.24))
+        smoothstep01((stage + 0.05) / 0.5) * (1 - smoothstep01((stage - 2.86) / 0.24))
 
       let ringX = w * 0.5
       let ringY = h * 0.66
@@ -320,35 +347,76 @@ export default function ParticleBackground({ currentSection }: ParticleBackgroun
         p.vx *= 0.9975
         p.vy *= 0.9975
 
-        const pulse = 0.68 + Math.sin(p.pulse) * 0.32
-        const alpha = p.opacity * pulse
+        const pulse = 0.92 + Math.sin(p.pulse) * 0.08
+        const depthAlpha = 0.35 + p.depth * 0.9
+        const alpha = p.opacity * pulse * depthAlpha
         if (alpha <= 0.006) return
+        const transitionAmount = smoothstep01(sectionTransition.progress)
+        const centerDistance = Math.abs(p.x - w * 0.5) / (w * 0.5)
+        const centerBand = smoothstep01((0.56 - centerDistance) / 0.36)
+        const lineStrength = transitionAmount * centerBand
 
         ctx.save()
-        ctx.globalAlpha = alpha
-        ctx.fillStyle = '#ffffff'
-
         if (p.shape === 'square') {
-          const half = p.size * 0.5
-          ctx.fillRect(p.x - half, p.y - half, p.size, p.size)
-        } else {
-          ctx.beginPath()
-          ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2)
-          ctx.fill()
-        }
+          const sqSize = Math.max(1.05, p.size * 0.28)
+          const sqAlpha = alpha * (0.52 + p.depth * 0.2)
 
-        if (p.size > 2.2) {
-          const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4)
-          glow.addColorStop(0, `rgba(235, 240, 250, ${alpha * 0.42})`)
-          glow.addColorStop(0.45, `rgba(220, 225, 235, ${alpha * 0.14})`)
-          glow.addColorStop(1, 'rgba(220, 225, 235, 0)')
-          ctx.fillStyle = glow
-          ctx.fillRect(
-            p.x - p.size * 4,
-            p.y - p.size * 4,
-            p.size * 8,
-            p.size * 8
+          ctx.fillStyle = `rgba(255,255,255,${sqAlpha})`
+          ctx.fillRect(p.x - sqSize * 0.5, p.y - sqSize * 0.5, sqSize, sqSize)
+
+          if (lineStrength > 0.08) {
+            const idleHangLen = 2.8 + p.depth * 4.2
+            const activeHangLen = p.hangLength
+            const hangLen = lerp(idleHangLen, activeHangLen, lineStrength)
+            const hangTopY = p.y - hangLen
+            const squareLineAlpha = alpha * (0.05 + p.depth * 0.08 + lineStrength * 0.38)
+            const hangGrad = ctx.createLinearGradient(p.x, hangTopY, p.x, p.y)
+            hangGrad.addColorStop(0, 'rgba(255,255,255,0)')
+            hangGrad.addColorStop(0.82, `rgba(225,230,238,${squareLineAlpha * 0.6})`)
+            hangGrad.addColorStop(1, `rgba(255,255,255,${squareLineAlpha})`)
+            ctx.beginPath()
+            ctx.moveTo(p.x, hangTopY)
+            ctx.lineTo(p.x, p.y)
+            ctx.strokeStyle = hangGrad
+            ctx.lineWidth = lerp(
+              0.95 + p.depth * 0.35,
+              1.75 + p.depth * 0.62,
+              lineStrength
+            )
+            ctx.lineCap = 'round'
+            ctx.stroke()
+          }
+        } else {
+          if (centerBand < 0.2) {
+            const tinySize = Math.max(1, p.size * 0.22)
+            const tinyAlpha = alpha * 0.5
+            ctx.fillStyle = `rgba(255,255,255,${tinyAlpha})`
+            ctx.fillRect(p.x - tinySize * 0.5, p.y - tinySize * 0.5, tinySize, tinySize)
+            ctx.restore()
+            return
+          }
+
+          const tailDirection = transitionAmount > 0.03
+            ? (sectionTransition.direction > 0 ? 1 : -1)
+            : 1
+          const idleLen = 2.2 + p.depth * 5.4
+          const activeLen = p.lineLength * (0.94 + Math.sin(p.pulse * 0.6) * 0.08)
+          const lineLength = lerp(idleLen, activeLen, lineStrength)
+          const tailY = p.y + lineLength * tailDirection
+          const lineAlpha = alpha * (0.06 + centerBand * 0.09 + lineStrength * 0.42)
+          const lineWidth = lerp(
+            0.95 + p.depth * 0.45,
+            1.9 + p.depth * 0.78,
+            lineStrength
           )
+
+          ctx.beginPath()
+          ctx.moveTo(p.x, p.y)
+          ctx.lineTo(p.x, tailY)
+          ctx.strokeStyle = `rgba(255,255,255,${lineAlpha})`
+          ctx.lineWidth = lineWidth
+          ctx.lineCap = 'round'
+          ctx.stroke()
         }
         ctx.restore()
       })

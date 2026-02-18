@@ -4,12 +4,35 @@ import * as THREE from 'three'
 import StarField from './scene/StarField'
 import BackgroundParticles from './scene/BackgroundParticles'
 import LowPolyHead from './scene/LowPolyHead'
+// ── 2015 ported components ──
 import GlitchSphere from './scene/GlitchSphere'
 import WaveGrid from './scene/WaveGrid'
+import RippleDrop from './scene/RippleDrop'
+import BeamColumns from './scene/BeamColumns'
 import HeightMapTerrain from './scene/HeightMapTerrain'
+import NeonTubes from './scene/NeonTubes'
 import AnimatedGrid from './scene/AnimatedGrid'
 import GalaxyRings from './scene/GalaxyRings'
 import FogClouds from './scene/FogClouds'
+import TravelStreaks from './scene/TravelStreaks'
+
+/*
+  10-section layout — one 3D object per section.
+  Camera travels DOWNWARD along Y-axis (like the 2015 site).
+  Each section is spaced 50 units apart (matching 2015 sectionHeight).
+  Camera: fov 20, z=40 — narrow telephoto look, objects appear large & centered.
+
+  Section 0   y≈    0   ALPHINTRA — stars only (hero text covers this)
+  Section 1   y≈  -50   ENGINEERING THE FUTURE — BeamColumns (2015 Beam)
+  Section 2   y≈ -100   WEB & MOBILE — RippleDrop (2015 Drop)
+  Section 3   y≈ -150   AI & AUTOMATION — GlitchSphere + AnimatedGrid (2015 Ball+Grid)
+  Section 4   y≈ -200   ENTERPRISE BACKEND — HeightMapTerrain (2015 HeightMap)
+  Section 5   y≈ -250   UI/UX & 3D DESIGN — WaveGrid (2015 Wave, like "EYES ON THE HORIZON")
+  Section 6   y≈ -300   OUR WORK — GalaxyRings (2015 Galaxy)
+  Section 7   y≈ -350   THE ALPHINTRA WAY — LowPolyHead (2015 Face)
+  Section 8   y≈ -400   THE TEAM — NeonTubes (2015 Neon)
+  Section 9   y≈ -450   LET'S TALK — particles only
+*/
 
 const TOTAL_DEPTH = 450
 const SECTION_SPACING = 50
@@ -17,7 +40,7 @@ const SECTION_SPACING = 50
 function sectionVisibility(
   cameraY: number,
   objectY: number,
-  fadeRange: number = 34
+  fadeRange: number = 28
 ): number {
   const dist = Math.abs(cameraY - objectY)
   if (dist > fadeRange) return 0
@@ -32,8 +55,8 @@ function CameraController({ scrollProgress }: CameraControllerProps) {
   const { camera } = useThree()
   const currentY = useRef(0)
   const targetYRef = useRef(0)
-  const mouseTarget = useRef({ x: 0, y: 0 })
-  const mouseCurrent = useRef({ x: 0, y: 0 })
+  const mouseTargetX = useRef(0)
+  const mouseCurrentX = useRef(0)
 
   useEffect(() => {
     targetYRef.current = -scrollProgress * TOTAL_DEPTH
@@ -41,15 +64,11 @@ function CameraController({ scrollProgress }: CameraControllerProps) {
 
   useEffect(() => {
     const onMouseMove = (event: MouseEvent) => {
-      const nx = (event.clientX / window.innerWidth) * 2 - 1
-      const ny = (event.clientY / window.innerHeight) * 2 - 1
-      mouseTarget.current.x = nx
-      mouseTarget.current.y = ny
+      mouseTargetX.current = (event.clientX / window.innerWidth) * 2 - 1
     }
 
     const onMouseLeave = () => {
-      mouseTarget.current.x = 0
-      mouseTarget.current.y = 0
+      mouseTargetX.current = 0
     }
 
     window.addEventListener('mousemove', onMouseMove)
@@ -61,51 +80,61 @@ function CameraController({ scrollProgress }: CameraControllerProps) {
     }
   }, [])
 
-  useFrame((state, delta) => {
-    // Slower easing keeps neighboring sections visually connected.
-    const lerpFactor = 1 - Math.exp(-2.45 * delta)
+  useFrame((_state, delta) => {
+    // Smooth exponential interpolation — ~98% settled in 1.5s (like 2015 Quart.easeInOut)
+    const lerpFactor = 1 - Math.exp(-3 * delta)
     currentY.current += (targetYRef.current - currentY.current) * lerpFactor
 
-    const mouseLerp = 1 - Math.exp(-7.2 * delta)
-    mouseCurrent.current.x += (mouseTarget.current.x - mouseCurrent.current.x) * mouseLerp
-    mouseCurrent.current.y += (mouseTarget.current.y - mouseCurrent.current.y) * mouseLerp
+    // Subtle horizontal sway — mimics 2015 mouse parallax
+    mouseCurrentX.current += (mouseTargetX.current - mouseCurrentX.current) * 0.05
+    const pointerX = mouseCurrentX.current * 6.5
 
-    const swayX = Math.sin(currentY.current * 0.003) * 0.28
-    const pointerX = mouseCurrent.current.x * 0.88
-    const pointerY = -mouseCurrent.current.y * 0.42
-    const pointerEnergy = Math.min(
-      1,
-      Math.hypot(mouseCurrent.current.x, mouseCurrent.current.y)
-    )
-    const time = state.clock.getElapsedTime()
-    const shakeAmp = 0.025 + pointerEnergy * 0.055
-    const shakeX = Math.sin(time * 6.2 + mouseCurrent.current.x * 3.9) * shakeAmp
-    const shakeY = Math.cos(time * 5.6 + mouseCurrent.current.y * 3.3) * shakeAmp * 0.72
+    const t = performance.now() * 0.001
+    const swayX = Math.sin(currentY.current * 0.004) * 0.45
+    const floatX = Math.sin(t * 0.35) * 0.16
+    const floatY = Math.cos(t * 0.28) * 0.28
+    const floatZ = Math.sin(t * 0.24) * 0.5
+    // Tiny camera shake like 2015
+    const shake = Math.cos(t * 2.1) * 0.018
 
-    camera.position.set(
-      swayX + pointerX + shakeX,
-      currentY.current + pointerY + shakeY,
-      40
-    )
-    camera.lookAt(pointerX * 0.32, currentY.current + pointerY * 0.45, 0)
+    const desiredX = swayX + floatX + pointerX
+    camera.position.x += (desiredX - camera.position.x) * 0.03
+    camera.position.y = currentY.current + floatY + shake
+    camera.position.z = 40 + floatZ
+    // Look straight at the objects (no downward offset — keeps objects centered)
+    camera.lookAt(pointerX * 0.18, currentY.current + floatY * 0.2, 0)
   })
 
   return null
 }
 
-interface ScrollDrivenObjectsProps {
-  currentSection: number
-}
-
-function ScrollDrivenObjects({ currentSection }: ScrollDrivenObjectsProps) {
+function ScrollDrivenObjects(_props: { scrollProgress: number }) {
   const S = SECTION_SPACING
 
+  // Visibility refs for 2015-ported active props
+  const visRef = useRef<Record<string, number>>({})
+
+  // Head group ref for smooth scale
   const headRef = useRef<THREE.Group | null>(null)
   const headScale = useRef(0)
 
   useFrame(({ camera }) => {
     const camY = camera.position.y
 
+    // Update visibility for all sections
+    visRef.current = {
+      sec0: sectionVisibility(camY, 0),
+      sec1: sectionVisibility(camY, -1 * S),
+      sec2: sectionVisibility(camY, -2 * S),
+      sec3: sectionVisibility(camY, -3 * S),
+      sec4: sectionVisibility(camY, -4 * S),
+      sec5: sectionVisibility(camY, -5 * S),
+      sec6: sectionVisibility(camY, -6 * S),
+      sec7: sectionVisibility(camY, -7 * S),
+      sec8: sectionVisibility(camY, -8 * S),
+    }
+
+    // Smooth scale for head group
     const headVis = sectionVisibility(camY, -7 * S, 30)
     headScale.current += (headVis - headScale.current) * 0.06
     if (headRef.current) {
@@ -114,67 +143,91 @@ function ScrollDrivenObjects({ currentSection }: ScrollDrivenObjectsProps) {
     }
   })
 
-  // Activation windows keep neighboring sections visually connected.
-  const ballActive = currentSection >= 3 && currentSection <= 4
-  // Delay terrain one section so Enterprise card stays clean.
-  const heightActive = currentSection === 5
-  const waveActive = currentSection >= 5 && currentSection <= 6
-  // Keep galaxy away from "Our Work" (section 6) to avoid section overlap bleed.
-  const galaxyActive = currentSection === 7
-
   return (
     <>
+      {/* ── All objects CENTERED at (0, -N*S, 0) like 2015 ── */}
+
+      {/* Section 1: BeamColumns — 2015 light beams with laser textures (3 beams) */}
+      <BeamColumns
+        position={[0, -1 * S, 0]}
+        active={(visRef.current.sec1 ?? 0) > 0.2}
+      />
+
+      {/* Section 2: RippleDrop — 2015 concentric drop rings */}
+      <RippleDrop
+        position={[0, -2 * S, 0]}
+        active={(visRef.current.sec2 ?? 0) > 0.2}
+        count={6}
+        amplitude={2}
+      />
+
+      {/* Section 3: GlitchSphere + AnimatedGrid — "GIVE SHAPE" style, centered */}
       <GlitchSphere
-        position={[0, -3 * S + 3, -8]}
-        radius={3.6}
-        active={ballActive}
-        entryStartY={-2 * S - 8}
-        entryStartZ={0}
-        entryStartScale={0.48}
-        entryDuration={1.2}
+        position={[0, -3 * S, 0]}
+        radius={4.5}
+        active={(visRef.current.sec3 ?? 0) > 0.2}
       />
       <AnimatedGrid
         position={[0, -3 * S - 2, 0]}
-        active={ballActive}
+        active={(visRef.current.sec3 ?? 0) > 0.2}
         divisionsX={10}
         divisionsY={10}
         divisionSize={3.5}
       />
 
+      {/* Section 4: HeightMapTerrain — "LET IT MORPH" style, centered & large */}
       <HeightMapTerrain
-        position={[0, -4 * S, 0]}
-        active={heightActive}
-        divisionsX={40}
-        divisionsY={40}
-        size={50}
-        amplitude={8}
+        position={[0, -4 * S + 1, -8]}
+        active={(visRef.current.sec4 ?? 0) > 0.2}
+        divisionsX={16}
+        divisionsY={12}
+        size={30}
+        amplitude={2.6}
+        lineOpacity={0.22}
       />
 
+      {/* Section 5: WaveGrid — "EYES ON THE HORIZON" style, centered full-width */}
       <WaveGrid
         position={[0, -5 * S - 3, 0]}
-        active={waveActive}
+        active={(visRef.current.sec5 ?? 0) > 0.2}
         divisionsX={50}
         divisionsY={50}
         divisionSize={0.8}
         opacity={0.3}
       />
 
-      <GalaxyRings position={[0, -7 * S, 0]} active={galaxyActive} ringCount={6} />
+      {/* Section 6: GalaxyRings — "WORK AS A TEAM" style, centered */}
+      <GalaxyRings
+        position={[0, -6 * S, 0]}
+        active={(visRef.current.sec6 ?? 0) > 0.2}
+        ringCount={6}
+      />
 
+      {/* Section 7: LowPolyHead — "KEEP TRYING" face, centered */}
       <group ref={headRef}>
         <LowPolyHead position={[0, -7 * S, 0]} size={4} />
       </group>
 
+      {/* Section 8: NeonTubes — 2015 flickering neon with glow textures */}
+      <NeonTubes
+        position={[0, -8 * S, 0]}
+        active={(visRef.current.sec8 ?? 0) > 0.2}
+        count={4}
+        spread={13}
+        tubeWidth={14}
+        color="#d6ddf0"
+      />
     </>
   )
 }
 
 interface Scene3DProps {
   scrollProgress: number
-  currentSection: number
 }
 
-export default function Scene3D({ scrollProgress, currentSection }: Scene3DProps) {
+export default function Scene3D({ scrollProgress }: Scene3DProps) {
+  const heroActive = scrollProgress < 0.12
+
   return (
     <div className="canvas-container">
       <Canvas
@@ -183,22 +236,24 @@ export default function Scene3D({ scrollProgress, currentSection }: Scene3DProps
         gl={{ alpha: false, antialias: true }}
         style={{ background: '#050507' }}
       >
-        <fogExp2 attach="fog" args={['#050507', 0.0115]} />
+        {/* Exponential fog like 2015 — subtle atmospheric depth */}
+        <fogExp2 attach="fog" args={['#050507', 0.009]} />
 
-        <ambientLight intensity={0.28} />
-        <directionalLight position={[5, 8, 10]} intensity={0.64} color="#d5d8df" />
-        <directionalLight position={[-3, -2, -5]} intensity={0.2} color="#9fa4af" />
-        <pointLight position={[0, 0, 35]} intensity={0.2} color="#ffffff" distance={80} />
+        <ambientLight intensity={0.2} />
+        <directionalLight position={[5, 8, 10]} intensity={0.48} color="#c8d3ee" />
+        <directionalLight position={[-3, -2, -5]} intensity={0.18} color="#7f8ca8" />
+        <pointLight position={[0, 0, 35]} intensity={0.14} color="#ffffff" distance={80} />
 
         <CameraController scrollProgress={scrollProgress} />
 
-        <BackgroundParticles count={600} />
-        <StarField count={500} />
+        <BackgroundParticles count={150} />
+        <StarField count={220} />
+        <TravelStreaks count={30} baseOpacity={0.26} />
 
-        <FogClouds yOffset={0} layers={6} opacity={0.06} />
-        <FogClouds yOffset={-95} layers={4} opacity={0.03} />
+        {/* Fog clouds — hero section (y ≈ 0), like 2015 SmokeObject3D */}
+        <FogClouds yOffset={0} layers={8} opacity={0.15} active={heroActive} />
 
-        <ScrollDrivenObjects currentSection={currentSection} />
+        <ScrollDrivenObjects scrollProgress={scrollProgress} />
       </Canvas>
     </div>
   )

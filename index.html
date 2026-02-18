@@ -1,18 +1,131 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="ALPHINTRA — Digital architecture studio specializing in AI-driven platforms, immersive 3D web experiences, and enterprise-grade cloud solutions." />
+    <title>Alphintra | AI, Web, Mobile, Cloud, and 3D Engineering</title>
+    <meta
+      name="description"
+      content="Alphintra engineers high-performance AI, web, mobile, and cloud products with immersive 3D experiences for startups and enterprises."
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta name="author" content="Alphintra" />
     <meta name="theme-color" content="#050508" />
-    <title>ALPHINTRA — Engineering Digital Intelligence</title>
+    <meta name="application-name" content="Alphintra" />
+
+    <link rel="canonical" href="https://www.alphintra.com/" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Alphintra" />
+    <meta property="og:title" content="Alphintra | AI, Web, Mobile, Cloud, and 3D Engineering" />
+    <meta
+      property="og:description"
+      content="From AI automation to enterprise cloud platforms, Alphintra builds scalable digital products with premium interactive experiences."
+    />
+    <meta property="og:url" content="https://www.alphintra.com/" />
+    <meta property="og:image" content="https://www.alphintra.com/logo.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Alphintra | AI, Web, Mobile, Cloud, and 3D Engineering" />
+    <meta
+      name="twitter:description"
+      content="We design and build AI-powered, cloud-ready digital products and immersive web experiences."
+    />
+    <meta name="twitter:image" content="https://www.alphintra.com/logo.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.alphintra.com/#organization",
+            "name": "Alphintra",
+            "url": "https://www.alphintra.com/",
+            "logo": "https://www.alphintra.com/logo.png",
+            "description": "Engineering-focused studio building AI, web, mobile, cloud, and interactive 3D products.",
+            "email": "hello@alphintra.com",
+            "sameAs": [
+              "https://www.linkedin.com/",
+              "https://github.com/"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.alphintra.com/#website",
+            "url": "https://www.alphintra.com/",
+            "name": "Alphintra",
+            "publisher": {
+              "@id": "https://www.alphintra.com/#organization"
+            }
+          },
+          {
+            "@type": "Service",
+            "serviceType": "Software Product Engineering",
+            "provider": {
+              "@id": "https://www.alphintra.com/#organization"
+            },
+            "areaServed": "Worldwide",
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Alphintra Services",
+              "itemListElement": [
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI and Automation Engineering" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Web and Mobile App Development" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Enterprise Backend and Cloud Architecture" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "UI UX and Interactive 3D Experiences" } }
+              ]
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://www.alphintra.com/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What does Alphintra build?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Alphintra builds AI systems, web and mobile apps, enterprise cloud backends, and interactive 3D digital experiences."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does Alphintra work with startups and enterprises?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Alphintra supports both early-stage startups and enterprise teams with scalable architecture and product delivery."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How can I start a project with Alphintra?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Contact hello@alphintra.com with your idea, scope, and timeline. The team can then propose discovery, design, and engineering milestones."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
     <style>
-      /* Critical CSS — prevents FOUC and shows background immediately */
-      body { margin: 0; background: #050508; overflow: hidden; }
+      /* Critical CSS to prevent flash before app styles load */
+      body {
+        margin: 0;
+        background: #050508;
+        overflow: hidden;
+      }
     </style>
   </head>
   <body>

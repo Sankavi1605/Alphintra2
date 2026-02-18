@@ -1,19 +1,16 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Scene3D from './components/Scene3D'
 import ScrollSections from './components/ScrollSections'
 import Loader from './components/Loader'
 import Footer from './components/Footer'
 
-// Code-split the heavy 3D scene (Three.js is ~700KB)
-const Scene3D = lazy(() => import('./components/Scene3D'))
-
 gsap.registerPlugin(ScrollTrigger)
 
 export default function App() {
-  const [scrollProgress, setScrollProgress] = useState(0)
-  const [currentSection, setCurrentSection] = useState(0)
   const [loaded, setLoaded] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
 
   useEffect(() => {
     if (loaded) {
@@ -35,13 +32,8 @@ export default function App() {
 
   return (
     <>
-      <Suspense fallback={null}>
-        <Scene3D scrollProgress={scrollProgress} currentSection={currentSection} />
-      </Suspense>
-      <ScrollSections
-        onScrollProgress={setScrollProgress}
-        onSectionChange={setCurrentSection}
-      />
+      <Scene3D scrollProgress={scrollProgress} />
+      <ScrollSections onScrollProgress={setScrollProgress} />
       <Footer />
     </>
   )

@@ -51,7 +51,7 @@ export default function StarField({ count = 1200 }: { count?: number }) {
           color="#ffffff"
           size={0.1}
           transparent
-          opacity={0.55}
+          opacity={0.42}
           sizeAttenuation
           depthWrite={false}
         />
@@ -64,7 +64,7 @@ export default function StarField({ count = 1200 }: { count?: number }) {
           color="#ffffff"
           size={0.25}
           transparent
-          opacity={0.7}
+          opacity={0.56}
           sizeAttenuation
           depthWrite={false}
         />

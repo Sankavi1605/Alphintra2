@@ -28,9 +28,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import PortfolioHorizontal from './PortfolioHorizontal'
-import ParticleBackground from './ParticleBackground'
 import NeonText from './NeonText'
-import HeroSmoke from './HeroSmoke'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
 
@@ -67,7 +65,7 @@ const sections: SectionData[] = [
     id: 'hero',
     line1: 'ENGINEERING',
     line2: 'THE FUTURE',
-    subtitle: 'OF DIGITAL INTELLIGENCE',
+    subtitle: '',
     align: 'left',
     detail: (
       <>
@@ -252,12 +250,10 @@ sections.forEach((s, i) => {
 
 interface ScrollSectionsProps {
   onScrollProgress: (progress: number) => void
-  onSectionChange?: (sectionIndex: number) => void
 }
 
 export default function ScrollSections({
   onScrollProgress,
-  onSectionChange,
 }: ScrollSectionsProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [currentStep, setCurrentStep] = useState(0)
@@ -265,10 +261,6 @@ export default function ScrollSections({
   const currentStepRef = useRef(0)
   const wheelAccum = useRef(0)
   const wheelTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Track which detail cards are visible
-  const [visibleDetails, setVisibleDetails] = useState<Set<number>>(new Set())
-  const [portfolioVisible, setPortfolioVisible] = useState(false)
 
   // Ref to portfolio navigation
   const portfolioNavRef = useRef<{
@@ -289,10 +281,22 @@ export default function ScrollSections({
   const runningTweens = useRef<gsap.core.Timeline[]>([])
 
   const syncProgress = useCallback(() => {
+    const sectionEls = containerRef.current?.querySelectorAll('.scroll-section')
+    if (sectionEls && sectionEls.length > 1) {
+      const first = sectionEls[0] as HTMLElement
+      const last = sectionEls[sectionEls.length - 1] as HTMLElement
+      const start = first.offsetTop
+      const end = last.offsetTop
+      const span = Math.max(1, end - start)
+      const raw = (window.scrollY - start) / span
+      onScrollProgress(Math.max(0, Math.min(1, raw)))
+      return
+    }
+
     const scrollTop = window.scrollY
     const docHeight = document.documentElement.scrollHeight - window.innerHeight
     const progress = docHeight > 0 ? scrollTop / docHeight : 0
-    onScrollProgress(progress)
+    onScrollProgress(Math.max(0, Math.min(1, progress)))
   }, [onScrollProgress])
 
   // ── Helper: get section's chars and subtitle from DOM ───────
@@ -301,6 +305,7 @@ export default function ScrollSections({
     if (!sectionEls || !sectionEls[sectionIndex]) return null
     const el = sectionEls[sectionIndex]
     return {
+      text: el.querySelector('.section-text') as HTMLElement | null,
       chars: el.querySelectorAll('.char'),
       subtitle: el.querySelector('.section-subtitle'),
     }
@@ -312,136 +317,153 @@ export default function ScrollSections({
     const els = getSectionElements(sectionIndex)
     if (!els || els.chars.length === 0) return
 
-    const { chars, subtitle } = els
+    const { text, chars, subtitle } = els
 
     if (isHero) {
-      // Hero ALPHINTRA entrance: glitch burst
+      // Hero entrance: clean zoom-in reveal (2015-inspired)
       const tl = gsap.timeline()
 
-      // Start from hidden
+      if (text) {
+        gsap.set(text, {
+          scale: 1.22,
+          filter: 'blur(3px)',
+          transformOrigin: '50% 50%',
+        })
+      }
+
       gsap.set(chars, {
-        opacity: 0, y: 120, scale: 0.2,
-        filter: 'blur(20px)', rotateX: 90,
-        transformOrigin: '50% 100%',
+        opacity: 0,
+        y: 10,
+        scale: 1.15,
+        filter: 'blur(16px)',
+        x: 0,
+        skewX: 0,
+        rotateX: 0,
+        transformOrigin: '50% 50%',
       })
 
-      // Phase 1: chars fly in
+      if (text) {
+        tl.to(text, {
+          scale: 1,
+          filter: 'blur(0px)',
+          duration: 1.45,
+          ease: 'expo.out',
+        }, 0)
+      }
+
       tl.to(chars, {
-        opacity: 1, y: 0, scale: 1,
-        filter: 'blur(0px)', rotateX: 0,
-        duration: 1.4,
-        stagger: { each: 0.07, from: 'center' },
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        filter: 'blur(0px)',
+        duration: 1.35,
+        stagger: { each: 0.028, from: 'center' },
         ease: 'expo.out',
-      })
+      }, 0.08)
 
-      // Phase 2: Glitch burst
+      // Quick blocky glitch burst to match the 2015 hello feel
       tl.to(chars, {
-        x: () => (Math.random() - 0.5) * 12,
-        skewX: () => (Math.random() - 0.5) * 15,
-        duration: 0.05,
-        stagger: { each: 0.02, from: 'random' },
-      }, '-=0.2')
-      tl.to(chars, {
-        x: () => (Math.random() - 0.5) * 8,
-        skewX: () => (Math.random() - 0.5) * 10,
-        opacity: () => 0.3 + Math.random() * 0.7,
-        duration: 0.04,
+        x: () => Math.round((Math.random() - 0.5) * 10),
+        y: () => Math.round((Math.random() - 0.5) * 4),
+        opacity: () => 0.4 + Math.random() * 0.6,
+        filter: () => `blur(${(Math.random() * 2.5).toFixed(2)}px)`,
+        textShadow: () =>
+          `${2 + Math.random() * 2}px 0 rgba(255,255,255,0.35), ${-2 - Math.random() * 2}px 0 rgba(255,255,255,0.2)`,
+        duration: 0.08,
         stagger: { each: 0.015, from: 'random' },
-      })
+        ease: 'steps(3)',
+      }, '>-0.18')
       tl.to(chars, {
-        x: () => (Math.random() - 0.5) * 16,
-        y: () => (Math.random() - 0.5) * 6,
-        skewX: () => (Math.random() - 0.5) * 20,
+        x: () => Math.round((Math.random() - 0.5) * 6),
+        y: () => Math.round((Math.random() - 0.5) * 3),
+        opacity: () => 0.55 + Math.random() * 0.45,
+        filter: () => `blur(${(Math.random() * 1.4).toFixed(2)}px)`,
         duration: 0.05,
-        stagger: { each: 0.01, from: 'random' },
-      })
-      // Snap back
-      tl.to(chars, {
-        x: 0, y: 0, skewX: 0, opacity: 1,
-        duration: 0.08, ease: 'power4.out',
-      })
-      // Bright flash
-      tl.to(chars, {
-        color: '#fff',
-        textShadow: '0 0 40px rgba(255,255,255,0.9), 0 0 80px rgba(255,255,255,0.4)',
-        duration: 0.1,
-        stagger: { each: 0.03, from: 'random' },
-      }, '-=0.04')
-      // Second burst
-      tl.to(chars, {
-        x: () => (Math.random() - 0.5) * 10,
-        skewX: () => (Math.random() - 0.5) * 12,
-        textShadow: () => {
-          const r = Math.random()
-          return r > 0.5
-            ? `${2 + Math.random() * 3}px 0 rgba(255,0,0,0.5), ${-2 - Math.random() * 3}px 0 rgba(0,255,255,0.5)`
-            : `0 ${2 + Math.random() * 2}px rgba(255,0,100,0.4), 0 ${-2 - Math.random() * 2}px rgba(0,200,255,0.4)`
-        },
-        duration: 0.06,
-        stagger: { each: 0.02, from: 'random' },
+        stagger: { each: 0.008, from: 'random' },
+        ease: 'steps(2)',
       })
       tl.to(chars, {
-        x: () => (Math.random() - 0.5) * 6,
-        duration: 0.04,
-        stagger: { each: 0.01, from: 'random' },
-      })
-      // Final settle
-      tl.to(chars, {
-        x: 0, y: 0, skewX: 0,
-        color: 'rgba(255, 255, 255, 0.9)',
+        x: 0,
+        y: 0,
+        opacity: 1,
+        filter: 'blur(0px)',
         textShadow: '0 0 0px transparent',
-        duration: 0.5, ease: 'power2.out',
+        duration: 0.4,
+        stagger: { each: 0.008, from: 'random' },
+        ease: 'power2.out',
       })
 
       runningTweens.current.push(tl)
 
-      // Start hero idle animations after entrance finishes
+      // Re-enable subtle hero glitch + shimmer idle behavior
       tl.eventCallback('onComplete', () => {
-        // Glitch loop
         heroGlitchLoop.current?.kill()
-        const glitchLoop = gsap.timeline({ repeat: -1, repeatDelay: 3 })
+        const glitchLoop = gsap.timeline({ repeat: -1, repeatDelay: 3.2 })
+        // First glitch burst — strong displacement
         glitchLoop.to(chars, {
-          x: () => (Math.random() - 0.5) * 10,
-          skewX: () => (Math.random() - 0.5) * 8,
+          x: () => Math.round((Math.random() - 0.5) * 8),
+          y: () => Math.round((Math.random() - 0.5) * 3),
+          skewX: () => (Math.random() - 0.5) * 6,
+          opacity: () => (Math.random() > 0.85 ? 0.3 : 0.86),
+          filter: () => `blur(${(Math.random() * 2).toFixed(2)}px)`,
           textShadow: () =>
-            `${1 + Math.random() * 2}px 0 rgba(255,0,0,0.35), ${-1 - Math.random() * 2}px 0 rgba(0,255,255,0.35)`,
+            `${2 + Math.random() * 2}px 0 rgba(255,80,120,0.3), ${-2 - Math.random() * 2}px 0 rgba(80,200,255,0.3)`,
           duration: 0.06,
-          stagger: { each: 0.015, from: 'random' },
+          stagger: { each: 0.014, from: 'random' },
         })
+        // Second micro-glitch
         glitchLoop.to(chars, {
-          x: () => (Math.random() - 0.5) * 14,
-          opacity: () => 0.4 + Math.random() * 0.6,
+          x: () => Math.round((Math.random() - 0.5) * 5),
+          y: () => Math.round((Math.random() - 0.5) * 2),
+          skewX: () => (Math.random() - 0.5) * 4,
+          opacity: () => 0.65 + Math.random() * 0.35,
+          duration: 0.055,
+          stagger: { each: 0.012, from: 'random' },
+        })
+        // Third micro-glitch (quick flash)
+        glitchLoop.to(chars, {
+          x: () => Math.round((Math.random() - 0.5) * 3),
+          y: () => Math.round((Math.random() - 0.5) * 2),
+          opacity: () => (Math.random() > 0.9 ? 0.55 : 0.92),
+          filter: () => `blur(${(Math.random() * 0.8).toFixed(2)}px)`,
           duration: 0.04,
-          stagger: { each: 0.01, from: 'random' },
+          stagger: { each: 0.008, from: 'random' },
         })
+        // Settle back
         glitchLoop.to(chars, {
-          x: 0, skewX: 0, opacity: 1,
+          x: 0,
+          y: 0,
+          skewX: 0,
+          opacity: 1,
+          filter: 'blur(0px)',
           textShadow: '0 0 0px transparent',
-          duration: 0.3, ease: 'power2.out',
+          duration: 0.28,
+          ease: 'power2.out',
         })
         heroGlitchLoop.current = glitchLoop
 
-        // Shimmer
         heroShimmer.current?.kill()
         heroShimmer.current = gsap.to(chars, {
           keyframes: [
-            { color: 'rgba(255,255,255,0.9)', textShadow: '0 0 0px transparent', duration: 0.4 },
-            { color: '#fff', textShadow: '0 0 25px rgba(255,255,255,0.7)', duration: 0.25 },
-            { color: 'rgba(255,255,255,0.9)', textShadow: '0 0 0px transparent', duration: 0.5 },
+            { color: 'rgba(230,234,240,0.85)', textShadow: '0 0 0px transparent', duration: 0.42 },
+            { color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.32)', duration: 0.16 },
+            { color: 'rgba(230,234,240,0.85)', textShadow: '0 0 0px transparent', duration: 0.58 },
           ],
-          stagger: { each: 0.12, repeat: -1, repeatDelay: 5 },
+          stagger: { each: 0.06, repeat: -1, repeatDelay: 3.9 },
         })
 
-        // Float
         heroFloat.current?.kill()
         heroFloat.current = gsap.to(chars, {
-          y: -3, duration: 2.5,
-          stagger: 0.1, ease: 'sine.inOut',
-          yoyo: true, repeat: -1,
+          y: -0.35,
+          duration: 4.2,
+          stagger: 0.08,
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
         })
       })
     } else {
-      // Regular section entrance (TextPanelObject3D.in())
+      // Regular section entrance (TextPanelObject3D.in()) with glitch burst
       gsap.set(chars, {
         opacity: 0, y: 80, scale: 0.3,
         filter: 'blur(12px)', x: 0, skewX: 0, rotateX: 0,
@@ -454,6 +476,27 @@ export default function ScrollSections({
         stagger: { each: 0.04, from: 'center' },
         ease: 'power3.out',
       })
+
+      // Add a subtle glitch burst after text lands
+      tl.to(chars, {
+        x: () => Math.round((Math.random() - 0.5) * 12),
+        y: () => Math.round((Math.random() - 0.5) * 5),
+        opacity: () => 0.2 + Math.random() * 0.8,
+        filter: () => `blur(${(Math.random() * 1.2).toFixed(2)}px)`,
+        duration: 0.06,
+        stagger: { each: 0.01, from: 'random' },
+        ease: 'steps(2)',
+      }, '>-0.3')
+      tl.to(chars, {
+        x: 0,
+        y: 0,
+        opacity: 1,
+        filter: 'blur(0px)',
+        duration: 0.25,
+        stagger: { each: 0.005, from: 'random' },
+        ease: 'power2.out',
+      })
+
       runningTweens.current.push(tl)
 
       // Subtitle entrance with delay
@@ -509,26 +552,12 @@ export default function ScrollSections({
     const from = steps[fromStep]
     const to = steps[toStep]
     const way = toStep > fromStep ? 'down' : 'up'
-    if (!from || !to) return
-
-    // Same section transition: title <-> detail/portfolio.
-    if (from.sectionIndex === to.sectionIndex) {
-      if (from.subStep === 'title' && to.subStep !== 'title') {
-        if (activeTextSections.current.has(from.sectionIndex)) {
-          animateTextOut(from.sectionIndex, way)
-        }
-      } else if (from.subStep !== 'title' && to.subStep === 'title') {
-        if (!activeTextSections.current.has(to.sectionIndex)) {
-          const isHero = to.sectionIndex === 0
-          animateTextIn(to.sectionIndex, isHero)
-        }
-      }
-      return
-    }
 
     // ── "out" the departing section's text ──
-    if (activeTextSections.current.has(from.sectionIndex)) {
-      animateTextOut(from.sectionIndex, way)
+    if (from && to && from.sectionIndex !== to.sectionIndex) {
+      if (activeTextSections.current.has(from.sectionIndex)) {
+        animateTextOut(from.sectionIndex, way)
+      }
     }
 
     // ── "in" the arriving section's text ──
@@ -548,34 +577,16 @@ export default function ScrollSections({
       if (isAnimating.current) return
 
       const previousStep = currentStepRef.current
-      const previous = steps[previousStep]
       currentStepRef.current = clamped
       setCurrentStep(clamped)
       isAnimating.current = true
 
       const step = steps[clamped]
-      const sameSection = previous?.sectionIndex === step.sectionIndex
-      const applyStepVisibility = () => {
-        setVisibleDetails(step.subStep === 'detail' ? new Set([step.sectionIndex]) : new Set())
-        setPortfolioVisible(step.subStep === 'portfolio')
-      }
-
-      // Update detail / portfolio visibility state
-      if (sameSection) {
-        applyStepVisibility()
-      }
 
       // ── Fire section animations ──
       animateSectionChange(previousStep, clamped)
 
-      if (sameSection) {
-        gsap.delayedCall(0.65, () => {
-          isAnimating.current = false
-          syncProgress()
-        })
-        return
-      }
-
+      // ── Camera tween → scroll to section ──
       const sectionEls = containerRef.current?.querySelectorAll('.scroll-section')
       if (!sectionEls) {
         isAnimating.current = false
@@ -594,7 +605,6 @@ export default function ScrollSections({
         ease: 'quart.inOut',
         onUpdate: syncProgress,
         onComplete: () => {
-          applyStepVisibility()
           isAnimating.current = false
           syncProgress()
         },
@@ -620,7 +630,7 @@ export default function ScrollSections({
       })
     }
 
-    // Play main ALPHINTRA entrance first.
+    // Play hero entrance after delay
     const timer = gsap.delayedCall(0.6, () => {
       animateTextIn(0, true)
     })
@@ -751,11 +761,11 @@ export default function ScrollSections({
   }, [])
 
   // ── Derived state ──
-  const currentSectionIndex = steps[currentStep]?.sectionIndex ?? 0
-
-  useEffect(() => {
-    onSectionChange?.(currentSectionIndex)
-  }, [currentSectionIndex, onSectionChange])
+  const currentStepData = steps[currentStep] ?? steps[0]
+  const currentSectionIndex = currentStepData.sectionIndex
+  const detailSectionIndex =
+    currentStepData.subStep === 'detail' ? currentStepData.sectionIndex : -1
+  const portfolioVisible = currentStepData.subStep === 'portfolio'
 
   // Portfolio callbacks
   const onPortfolioDone = useCallback(() => {
@@ -768,9 +778,6 @@ export default function ScrollSections({
 
   return (
     <>
-      {/* ── Particle background canvas ── */}
-      <ParticleBackground currentSection={currentSectionIndex} />
-
       {/* ── Scroll-down indicator ── */}
       <div className="scroll-indicator">
         <div className="scroll-indicator__inner">
@@ -793,7 +800,7 @@ export default function ScrollSections({
       </div>
 
       {/* ── Side navigation dots (2015's MapObject2D) ── */}
-      <nav className="section-nav">
+      <nav className="section-nav" aria-label="Section navigation">
         {sections.map((s, i) => (
           <button
             key={s.id}
@@ -802,28 +809,29 @@ export default function ScrollSections({
               const titleStep = steps.findIndex((st) => st.sectionIndex === i && st.subStep === 'title')
               if (titleStep >= 0) goToStep(titleStep)
             }}
-            aria-label={s.id}
+            aria-label={`Go to ${s.line1}${s.line2 ? ` ${s.line2}` : ''}`}
+            aria-current={i === currentSectionIndex ? 'true' : 'false'}
           />
         ))}
       </nav>
 
-      {/* ── Connecting lines between sections ── */}
-
       {/* ── Sections ── */}
       <div ref={containerRef} className="scroll-overlay">
         {sections.map((s, i) => {
-          const detailActive = visibleDetails.has(i)
+          const detailActive = detailSectionIndex === i
           const portfolioActive = s.isPortfolio && portfolioVisible
           const hideTitle = detailActive || portfolioActive
           const isActive = currentSectionIndex === i
 
           return (
-            <div key={s.id} className={`scroll-section scroll-section--${s.align}`} data-section-id={s.id}>
-              {/* Hero smoke clouds (2015 SmokeObject3D) */}
-              {i === 0 && <HeroSmoke active={currentSectionIndex === 0} />}
-
+            <div
+              key={s.id}
+              id={s.id}
+              className={`scroll-section scroll-section--${s.align}`}
+              data-section-id={s.id}
+            >
               {/* Title text */}
-              <div className={`section-text section-text--${s.align}${hideTitle ? ' section-text--hidden' : ''}`}>
+              <div className={`section-text section-text--${s.align}${s.id === 'hello' ? ' section-text--hero' : ''}${hideTitle ? ' section-text--hidden' : ''}`}>
                 <h1>{splitToChars(s.line1)}</h1>
                 {s.line2 && <h2>{splitToChars(s.line2)}</h2>}
                 {s.subtitle && (

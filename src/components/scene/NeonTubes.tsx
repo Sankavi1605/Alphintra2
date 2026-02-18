@@ -130,12 +130,12 @@ export default function NeonTubes({
   // Flicker-on state machine + idle glow
   const startIdle = useCallback((t: TubeState) => {
     // Idle glow oscillation: glow 0.4→0.7, projection 0.08→0.15
-    const state = { glowOp: 0.4, projOp: 0.08 }
+    const state = { glowOp: 0.22, projOp: 0.03 }
     const breathe = gsap.to(
       state,
       {
-        glowOp: 0.7,
-        projOp: 0.15,
+        glowOp: 0.42,
+        projOp: 0.08,
         duration: random(0.8, 5),
         yoyo: true,
         repeat: -1,
@@ -159,8 +159,8 @@ export default function NeonTubes({
       gsap.delayedCall(random(0.05, 0.1), () => {
         if (!activeRef.current) return
         t.tubeMat.emissive.copy(new THREE.Color(color))
-        t.glowMats.forEach(m => { m.opacity = 0.4 })
-        t.projMat.opacity = 0.08
+        t.glowMats.forEach(m => { m.opacity = 0.22 })
+        t.projMat.opacity = 0.03
       })
 
       const next = gsap.delayedCall(random(3, 10), flickOff)
@@ -194,8 +194,8 @@ export default function NeonTubes({
         // Flick ON
         flickerTl.call(() => {
           t.tubeMat.emissive.copy(new THREE.Color(color))
-          t.glowMats.forEach(m => { m.opacity = 0.3 })
-          t.projMat.opacity = 0.05
+          t.glowMats.forEach(m => { m.opacity = 0.2 })
+          t.projMat.opacity = 0.03
         })
         flickerTl.to({}, { duration: flickDur })
         // Flick OFF
@@ -210,8 +210,8 @@ export default function NeonTubes({
       // Final ON — transition to idle
       flickerTl.call(() => {
         t.tubeMat.emissive.copy(new THREE.Color(color))
-        t.glowMats.forEach(m => { m.opacity = 0.4 })
-        t.projMat.opacity = 0.08
+        t.glowMats.forEach(m => { m.opacity = 0.22 })
+        t.projMat.opacity = 0.03
         startIdle(t)
       })
 

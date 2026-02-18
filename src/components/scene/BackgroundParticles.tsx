@@ -11,7 +11,7 @@ export default function BackgroundParticles({ count = 800 }: { count?: number })
   const dotsRef = useRef<THREE.Points>(null)
   const cubesRef = useRef<THREE.InstancedMesh>(null)
 
-  const cubeCount = Math.floor(count * 0.06) // ~48 small cubes
+  const cubeCount = Math.floor(count * 0.16)
 
   // Dot particle positions — spread across the full scene depth
   const dotPositions = useMemo(() => {
@@ -27,7 +27,7 @@ export default function BackgroundParticles({ count = 800 }: { count?: number })
   const dotSizes = useMemo(() => {
     const sizes = new Float32Array(count)
     for (let i = 0; i < count; i++) {
-      sizes[i] = 0.04 + Math.random() * 0.12
+      sizes[i] = 0.02 + Math.random() * 0.06
     }
     return sizes
   }, [count])
@@ -40,9 +40,9 @@ export default function BackgroundParticles({ count = 800 }: { count?: number })
         x: (Math.random() - 0.5) * 100,
         y: 20 - Math.random() * 420,
         z: -3 + (Math.random() - 0.5) * 30,
-        size: 0.15 + Math.random() * 0.35,
+        size: 0.14 + Math.random() * 0.24,
         rotSpeed: (Math.random() - 0.5) * 0.4,
-        driftSpeed: 0.02 + Math.random() * 0.06,
+        driftSpeed: 0.01 + Math.random() * 0.03,
         driftPhase: Math.random() * Math.PI * 2,
       })
     }
@@ -64,13 +64,13 @@ export default function BackgroundParticles({ count = 800 }: { count?: number })
     if (cubesRef.current) {
       cubeData.forEach((cube, i) => {
         const driftX = Math.sin(t * cube.driftSpeed + cube.driftPhase) * 0.3
-        const driftY = Math.cos(t * cube.driftSpeed * 0.7 + cube.driftPhase) * 0.2
+        const driftY = Math.cos(t * cube.driftSpeed * 0.7 + cube.driftPhase) * 0.14
 
         dummy.position.set(cube.x + driftX, cube.y + driftY, cube.z)
         dummy.rotation.set(
-          t * cube.rotSpeed * 0.5,
-          t * cube.rotSpeed,
-          t * cube.rotSpeed * 0.3
+          t * cube.rotSpeed * 0.1,
+          t * cube.rotSpeed * 0.2,
+          t * cube.rotSpeed * 0.1
         )
         dummy.scale.setScalar(cube.size)
         dummy.updateMatrix()
@@ -90,9 +90,9 @@ export default function BackgroundParticles({ count = 800 }: { count?: number })
         </bufferGeometry>
         <pointsMaterial
           color="#ffffff"
-          size={0.12}
+          size={0.07}
           transparent
-          opacity={0.55}
+          opacity={0.24}
           sizeAttenuation
           depthWrite={false}
         />
@@ -108,7 +108,8 @@ export default function BackgroundParticles({ count = 800 }: { count?: number })
         <meshBasicMaterial
           color="#ffffff"
           transparent
-          opacity={0.65}
+          opacity={0.8}
+          blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </instancedMesh>

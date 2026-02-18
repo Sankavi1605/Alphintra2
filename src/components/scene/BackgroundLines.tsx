@@ -27,7 +27,7 @@ export default function BackgroundLines({ count = 200 }: { count?: number }) {
 
   // Build line segments between nearby anchors (within threshold distance)
   const { geometries, lineData } = useMemo(() => {
-    const threshold = 25
+    const threshold = 30
     const geos: THREE.BufferGeometry[] = []
     const data: { baseOpacity: number; speed: number; phase: number }[] = []
 
@@ -44,10 +44,10 @@ export default function BackgroundLines({ count = 200 }: { count?: number }) {
           geos.push(geo)
 
           // Opacity inversely proportional to distance
-          const opacity = (1 - dist / threshold) * 0.2
+          const opacity = (1 - dist / threshold) * 0.28
           data.push({
             baseOpacity: opacity,
-            speed: 0.1 + Math.random() * 0.3,
+            speed: 0.08 + Math.random() * 0.25,
             phase: Math.random() * Math.PI * 2,
           })
         }

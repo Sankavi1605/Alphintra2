@@ -54,88 +54,89 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
             const { w, h } = dims.current
             const rand = seededRandom(77)
             const cl: SmokeCloud[] = []
+            const centerX = w * 0.5
 
             // Back layer: large dark gray clouds
-            for (let i = 0; i < 6; i++) {
-                const cx = w * 0.1 + rand() * w * 0.8
-                const cy = h * 0.2 + rand() * h * 0.6
+            for (let i = 0; i < 7; i++) {
+                const cx = centerX + (rand() - 0.5) * w * 0.58
+                const cy = h * 0.05 + rand() * h * 0.9
                 cl.push({
                     x: cx, y: cy,
-                    radius: 150 + rand() * 350,
-                    baseRadius: 150 + rand() * 350,
+                    radius: 200 + rand() * 450,
+                    baseRadius: 200 + rand() * 450,
                     opacity: 0,
-                    baseOpacity: 0.026 + rand() * 0.024,
+                    baseOpacity: 0.055 + rand() * 0.04,
                     rotation: rand() * Math.PI * 2,
                     rotSpeed: (rand() - 0.5) * 0.002,
                     vx: (rand() - 0.5) * 0.4,
                     vy: (rand() - 0.5) * 0.15,
                     phase: rand() * Math.PI * 2,
                     phaseSpeed: 0.003 + rand() * 0.005,
-                    color: `${52 + Math.floor(rand() * 30)}, ${58 + Math.floor(rand() * 32)}, ${66 + Math.floor(rand() * 35)}`,
-                    stretch: 1.2 + rand() * 0.6,
+                    color: `${42 + Math.floor(rand() * 30)}, ${48 + Math.floor(rand() * 32)}, ${56 + Math.floor(rand() * 35)}`,
+                    stretch: 1.3 + rand() * 0.7,
                 })
             }
 
             // Mid layer: medium neutral smoke
-            for (let i = 0; i < 5; i++) {
-                const cx = w * 0.15 + rand() * w * 0.7
-                const cy = h * 0.25 + rand() * h * 0.5
+            for (let i = 0; i < 8; i++) {
+                const cx = centerX + (rand() - 0.5) * w * 0.46
+                const cy = h * 0.1 + rand() * h * 0.8
                 cl.push({
                     x: cx, y: cy,
-                    radius: 120 + rand() * 280,
-                    baseRadius: 120 + rand() * 280,
+                    radius: 160 + rand() * 350,
+                    baseRadius: 160 + rand() * 350,
                     opacity: 0,
-                    baseOpacity: 0.02 + rand() * 0.02,
+                    baseOpacity: 0.045 + rand() * 0.035,
                     rotation: rand() * Math.PI * 2,
                     rotSpeed: (rand() - 0.5) * 0.003,
                     vx: (rand() - 0.5) * 0.3,
                     vy: (rand() - 0.5) * 0.12,
                     phase: rand() * Math.PI * 2,
                     phaseSpeed: 0.004 + rand() * 0.006,
-                    color: `${90 + Math.floor(rand() * 28)}, ${99 + Math.floor(rand() * 28)}, ${112 + Math.floor(rand() * 28)}`,
-                    stretch: 1.1 + rand() * 0.5,
+                    color: `${75 + Math.floor(rand() * 35)}, ${84 + Math.floor(rand() * 35)}, ${98 + Math.floor(rand() * 35)}`,
+                    stretch: 1.2 + rand() * 0.6,
                 })
             }
 
             // Front layer: light gray wisps
-            for (let i = 0; i < 5; i++) {
-                const cx = w * 0.2 + rand() * w * 0.6
-                const cy = h * 0.3 + rand() * h * 0.4
+            for (let i = 0; i < 8; i++) {
+                const cx = centerX + (rand() - 0.5) * w * 0.36
+                const cy = h * 0.15 + rand() * h * 0.7
                 cl.push({
                     x: cx, y: cy,
-                    radius: 80 + rand() * 200,
-                    baseRadius: 80 + rand() * 200,
+                    radius: 100 + rand() * 260,
+                    baseRadius: 100 + rand() * 260,
                     opacity: 0,
-                    baseOpacity: 0.016 + rand() * 0.02,
+                    baseOpacity: 0.038 + rand() * 0.03,
                     rotation: rand() * Math.PI * 2,
                     rotSpeed: (rand() - 0.5) * 0.004,
                     vx: (rand() - 0.5) * 0.5,
                     vy: (rand() - 0.5) * 0.2,
                     phase: rand() * Math.PI * 2,
                     phaseSpeed: 0.005 + rand() * 0.008,
-                    color: `${128 + Math.floor(rand() * 24)}, ${136 + Math.floor(rand() * 24)}, ${148 + Math.floor(rand() * 24)}`,
-                    stretch: 1.0 + rand() * 0.4,
+                    color: `${118 + Math.floor(rand() * 30)}, ${126 + Math.floor(rand() * 30)}, ${140 + Math.floor(rand() * 30)}`,
+                    stretch: 1.1 + rand() * 0.5,
                 })
             }
 
             // Accent wisps: near-white highlights
-            for (let i = 0; i < 3; i++) {
-                const cx = w * 0.25 + rand() * w * 0.5
-                const cy = h * 0.35 + rand() * h * 0.3
+            for (let i = 0; i < 6; i++) {
+                const cx = centerX + (rand() - 0.5) * w * 0.28
+                const cy = h * 0.2 + rand() * h * 0.6
                 cl.push({
                     x: cx, y: cy,
-                    radius: 60 + rand() * 120,
-                    baseRadius: 60 + rand() * 120,
+                    radius: 80 + rand() * 180,
+                    baseRadius: 80 + rand() * 180,
                     opacity: 0,
-                    baseOpacity: 0.008 + rand() * 0.012,
+                    baseOpacity: 0.025 + rand() * 0.025,
                     rotation: rand() * Math.PI * 2,
                     rotSpeed: (rand() - 0.5) * 0.005,
                     vx: (rand() - 0.5) * 0.6,
                     vy: (rand() - 0.5) * 0.25,
                     phase: rand() * Math.PI * 2,
                     phaseSpeed: 0.006 + rand() * 0.01,
-                    color: `${188 + Math.floor(rand() * 24)}, ${195 + Math.floor(rand() * 20)}, ${206 + Math.floor(rand() * 18)}`,
-                    stretch: 0.8 + rand() * 0.6,
+                    color: `${178 + Math.floor(rand() * 30)}, ${185 + Math.floor(rand() * 26)}, ${198 + Math.floor(rand() * 24)}`,
+                    stretch: 0.9 + rand() * 0.6,
                 })
             }
 
@@ -161,14 +162,14 @@ export default function HeroSmoke({ active = true }: HeroSmokeProps) {
 
             // Fade in/out
             if (active && fadeIn.current < 1) {
-                fadeIn.current = Math.min(1, fadeIn.current + 0.008)
+                fadeIn.current = Math.min(1, fadeIn.current + 0.011)
             } else if (!active && fadeIn.current > 0) {
                 fadeIn.current = Math.max(0, fadeIn.current - 0.015)
             }
 
             ctx.clearRect(0, 0, w, h)
 
-            const globalFade = fadeIn.current * 0.62
+            const globalFade = fadeIn.current * 0.92
 
             clouds.current.forEach((cloud) => {
                 cloud.x += cloud.vx

@@ -16,6 +16,7 @@ interface HeightMapTerrainProps {
   divisionsY?: number
   size?: number
   amplitude?: number
+  lineOpacity?: number
   fromColor?: string
   toColor?: string
   mapCount?: number
@@ -57,15 +58,18 @@ export default function HeightMapTerrain({
   divisionsY = 30,
   size = 50,
   amplitude = 8,
+  lineOpacity = 0.85,
   fromColor = '#4c4c4c',
   toColor = '#ffffff',
   mapCount = 4,
 }: HeightMapTerrainProps) {
   const groupRef = useRef<THREE.Group>(null)
   const geoRef = useRef<THREE.PlaneGeometry>(null)
+  const matRef = useRef<THREE.LineBasicMaterial>(null)
   const tweenRef = useRef<gsap.core.Tween | null>(null)
   const currentMap = useRef(0)
   const prevData = useRef<Float32Array | null>(null)
+  const visRef = useRef(active ? 1 : 0)
 
   const fromCol = useMemo(() => new THREE.Color(fromColor), [fromColor])
   const toCol = useMemo(() => new THREE.Color(toColor), [toColor])
@@ -239,10 +243,18 @@ export default function HeightMapTerrain({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
-  // Gentle idle rotation
+  // Fade visibility with section activity to prevent cross-section visual clutter.
   useFrame((_, delta) => {
-    if (!groupRef.current) return
-    groupRef.current.rotation.z += delta * 0.03
+    const target = active ? 1 : 0
+    visRef.current += (target - visRef.current) * (1 - Math.exp(-7 * delta))
+
+    if (groupRef.current) {
+      groupRef.current.visible = visRef.current > 0.01
+    }
+
+    if (matRef.current) {
+      matRef.current.opacity = lineOpacity * visRef.current
+    }
   })
 
   return (
@@ -262,7 +274,7 @@ export default function HeightMapTerrain({
             itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicMaterial vertexColors transparent opacity={0.85} />
+        <lineBasicMaterial ref={matRef} vertexColors transparent opacity={lineOpacity} />
       </lineSegments>
     </group>
   )

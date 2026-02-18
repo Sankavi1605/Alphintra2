@@ -20,20 +20,12 @@ interface GlitchSphereProps {
   active?: boolean
   position?: [number, number, number]
   radius?: number
-  entryStartY?: number
-  entryStartZ?: number
-  entryStartScale?: number
-  entryDuration?: number
 }
 
 export default function GlitchSphere({
   active = false,
   position = [0, 0, 0],
   radius = 10,
-  entryStartY = position[1] + 40,
-  entryStartZ = position[2],
-  entryStartScale = 0.72,
-  entryDuration = 1.35,
 }: GlitchSphereProps) {
   const meshRef = useRef<THREE.Mesh>(null!)
   const materialRef = useRef<THREE.ShaderMaterial>(null!)
@@ -45,9 +37,7 @@ export default function GlitchSphere({
     blinkFactor: 0,   // 0 = normal, 1 = inverted colors
     glitchFactor: 0,  // 0 = normal, 1 = noise pattern
     opacity: 0,
-    posY: entryStartY,
-    posZ: entryStartZ,
-    scale: entryStartScale,
+    posY: position[1] + 40,
   })
 
   const uniforms = useMemo(() => ({
@@ -99,28 +89,16 @@ export default function GlitchSphere({
     // ── Entrance tween ──
     const inTween = gsap.to(s, {
       posY: position[1],
-      posZ: position[2],
       opacity: 1,
-      scale: 1,
-      duration: entryDuration,
+      duration: 1.5,
       paused: true,
-      ease: 'power3.out',
+      ease: 'power2.out',
     })
 
     tweensRef.current = [rotateTween, blinkTween, glitchTween, inTween]
 
     return () => { tweensRef.current.forEach(t => t.kill()) }
-  }, [entryDuration, entryStartScale, entryStartY, entryStartZ, position[0], position[1], position[2]])
-
-  useEffect(() => {
-    const s = stateRef.current
-    if (!active) {
-      s.posY = entryStartY
-      s.posZ = entryStartZ
-      s.opacity = 0
-      s.scale = entryStartScale
-    }
-  }, [active, entryStartScale, entryStartY, entryStartZ])
+  }, [])
 
   // ── Start / stop based on active ──
   useEffect(() => {
@@ -151,8 +129,7 @@ export default function GlitchSphere({
     mesh.rotation.x = s.rotateX
     mesh.position.y = s.posY
     mesh.position.x = position[0]
-    mesh.position.z = s.posZ
-    mesh.scale.setScalar(s.scale)
+    mesh.position.z = position[2]
 
     uniforms.uStripeRepeat.value = s.stripeRepeat
     uniforms.uBlinkFactor.value = s.blinkFactor
